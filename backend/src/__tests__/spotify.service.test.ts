@@ -43,4 +43,28 @@ describe('SpotifyService', () => {
       ).rejects.toThrow('Unsupported emotion');
     });
   });
+
+  describe('getMyTopTracks', () => {
+    it('should return top tracks', async () => {
+      const mockTopTracks = {
+        body: {
+          items: [
+            { id: '1', name: 'Track 1', artists: [{ name: 'Artist 1' }], uri: 'spotify:track:1' }
+          ]
+        },
+        headers: {},
+        statusCode: 200
+      };
+
+      // Mock the Spotify API calls
+      (SpotifyWebApi as jest.MockedClass<typeof SpotifyWebApi>).prototype.getMyTopTracks
+        .mockResolvedValue(mockTopTracks);
+
+      const result = await spotifyService.getMyTopTracks();
+
+      expect(result).toBeDefined();
+      expect(result.tracks).toHaveLength(1);
+      expect(result.tracks[0].name).toBe('Track 1');
+    });
+  });
 });
