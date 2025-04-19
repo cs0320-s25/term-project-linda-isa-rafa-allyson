@@ -2,12 +2,12 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { createTheme } from '@mui/material/styles';
-import Navbar from './components/Navbar';
+import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
+import Header from './components/layout/Header';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import PlaylistGenerator from './pages/PlaylistGenerator';
-import { AuthProvider } from './contexts/AuthContext';
 
 const theme = createTheme({
   palette: {
@@ -28,22 +28,38 @@ const theme = createTheme({
   },
 });
 
+if (!process.env.REACT_APP_CLERK_PUBLISHABLE_KEY) {
+  throw new Error("Missing Clerk Publishable Key");
+}
+
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AuthProvider>
+    <ClerkProvider publishableKey={process.env.REACT_APP_CLERK_PUBLISHABLE_KEY}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
         <Router>
-          <Navbar />
+          <Header />
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/generate" element={<PlaylistGenerator />} />
+            <Route
+              path="/generate"
+              element={
+                <>
+                  <SignedIn>
+                    <PlaylistGenerator />
+                  </SignedIn>
+                  <SignedOut>
+                    <RedirectToSignIn />
+                  </SignedOut>
+                </>
+              }
+            />
           </Routes>
         </Router>
-      </AuthProvider>
-    </ThemeProvider>
+      </ThemeProvider>
+    </ClerkProvider>
   );
 }
 
