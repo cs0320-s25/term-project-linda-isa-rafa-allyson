@@ -44,13 +44,19 @@ describe('SpotifyService', () => {
     });
   });
 
-  describe('getMyTopTracks', () => {
+  describe('getUserTopTracks', () => {
     it('should return top tracks', async () => {
       const mockTopTracks = {
         body: {
           items: [
             { id: '1', name: 'Track 1', artists: [{ name: 'Artist 1' }], uri: 'spotify:track:1' }
-          ]
+          ],
+          href: 'https://api.spotify.com/v1/me/top/tracks',
+          limit: 20,
+          next: null,
+          offset: 0,
+          previous: null,
+          total: 1
         },
         headers: {},
         statusCode: 200
@@ -58,9 +64,9 @@ describe('SpotifyService', () => {
 
       // Mock the Spotify API calls
       (SpotifyWebApi as jest.MockedClass<typeof SpotifyWebApi>).prototype.getMyTopTracks
-        .mockResolvedValue(mockTopTracks);
+        .mockResolvedValue(mockTopTracks as any);
 
-      const result = await spotifyService.getMyTopTracks();
+      const result = await spotifyService.getUserTopTracks();
 
       expect(result).toBeDefined();
       expect(result.tracks).toHaveLength(1);

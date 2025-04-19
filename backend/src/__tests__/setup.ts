@@ -1,23 +1,10 @@
 import { Pool } from 'pg';
 
 // Mock the database connection
+const mockQuery = jest.fn();
 jest.mock('pg', () => {
   const mockPool = {
-    query: jest.fn().mockImplementation((query, params) => {
-      if (query.includes('INSERT INTO users')) {
-        return Promise.resolve({ rows: [{ id: 'test-user-id' }] });
-      }
-      if (query.includes('SELECT * FROM users')) {
-        return Promise.resolve({ 
-          rows: [{ 
-            id: 'test-user-id', 
-            email: 'test@example.com',
-            password: '$2b$10$hashedpassword' // Mock hashed password
-          }] 
-        });
-      }
-      return Promise.resolve({ rows: [] });
-    }),
+    query: mockQuery,
     connect: jest.fn().mockResolvedValue(true),
     end: jest.fn().mockResolvedValue(true)
   };
@@ -26,6 +13,7 @@ jest.mock('pg', () => {
 
 // Mock bcrypt
 jest.mock('bcrypt', () => ({
+  genSalt: jest.fn().mockResolvedValue('salt'),
   hash: jest.fn().mockResolvedValue('$2b$10$hashedpassword'),
   compare: jest.fn().mockResolvedValue(true)
 }));
@@ -47,4 +35,38 @@ jest.mock('../services/spotify.service', () => ({
       ])
     })
   }
-})); 
+}));
+
+// Reset mocks before each test
+beforeEach(() => {
+  mockQuery.mockReset();
+  mockQuery.mockImplementation((query, params) => {
+    // Handle user queries
+    if (query.includes('SELECT * FROM users')) {
+      if (params && params[0] === 'test@example.com') {
+        return Promise.resolve({ 
+          rows: [{ 
+            id: 'test-user-id', 
+            email: 'test@example.com',
+            password_hash: '$2b$10$hashedpassword'
+          }] 
+        });
+      }
+      return Promise.resolve({ rows: [] });
+    }
+    // Handle user insertion
+    if (query.includes('INSERT INTO users')) {
+      return Promise.resolve({ 
+        rows: [{ 
+          id: 'test-user-id', 
+          email: params[0]
+        }] 
+      });
+    }
+    // Handle memory and playlist queries
+    if (query.includes('INSERT INTO memories') || query.includes('INSERT INTO playlists')) {
+      return Promise.resolve({ rows: [{ id: 'test-id' }] });
+    }
+    return Promise.resolve({ rows: [] });
+  });
+}); 

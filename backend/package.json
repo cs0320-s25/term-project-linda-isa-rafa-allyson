@@ -50,6 +50,8 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "bcrypt": "^5.1.1"
+    "@types/bcryptjs": "^3.0.0",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2"
   }
 }

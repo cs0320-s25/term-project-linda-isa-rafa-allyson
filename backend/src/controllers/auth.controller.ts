@@ -84,7 +84,7 @@ export class AuthController {
       // Generate JWT token
       const token = generateToken({ id: user.id, email: user.email });
 
-      res.json({
+      res.status(200).json({
         id: user.id,
         email: user.email,
         token

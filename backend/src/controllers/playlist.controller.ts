@@ -22,6 +22,11 @@ export class PlaylistController {
         return;
       }
 
+      if (!emotion) {
+        res.status(500).json({ error: 'Failed to generate playlist' });
+        return;
+      }
+
       // Encrypt memory text before storing
       const encryptedMemory = memoryText ? encryptMemory(memoryText) : null;
 
