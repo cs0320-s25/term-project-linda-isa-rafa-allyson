@@ -22,6 +22,10 @@
     "spotify-web-api-node": "^5.0.2"
   },
   "devDependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^7.0.2",
+    "@mui/material": "^7.0.2",
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
@@ -29,7 +33,8 @@
     "@types/node": "^22.14.1",
     "@types/pg": "^8.11.13",
     "@types/spotify-web-api-node": "^5.0.11",
+    "@types/spotify-web-playback-sdk": "^0.1.19",
+    "axios": "^1.8.4",
     "typescript": "^5.8.3"
   }
-  
 }
