@@ -5,8 +5,6 @@ import { createTheme } from '@mui/material/styles';
 import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
 import Header from './components/layout/Header';
 import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
 import PlaylistGenerator from './pages/PlaylistGenerator';
 
 const theme = createTheme({
@@ -28,21 +26,17 @@ const theme = createTheme({
   },
 });
 
-if (!process.env.REACT_APP_CLERK_PUBLISHABLE_KEY) {
-  throw new Error("Missing Clerk Publishable Key");
-}
+const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_cXVpZXQtZ3VsbC0yMy5jbGVyay5hY2NvdW50cy5kZXYk';
 
 function App() {
   return (
-    <ClerkProvider publishableKey={process.env.REACT_APP_CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider publishableKey={clerkPubKey}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Router>
           <Header />
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
             <Route
               path="/generate"
               element={
