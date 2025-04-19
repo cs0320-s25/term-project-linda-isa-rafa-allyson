@@ -1,5 +1,6 @@
 import { spotifyApi, emotionToAudioFeatures } from '../config/spotify.config';
 import Redis from 'redis';
+import SpotifyWebApi from 'spotify-web-api-node';
 
 const redisClient = Redis.createClient();
 
