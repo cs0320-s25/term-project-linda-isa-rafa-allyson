@@ -1,6 +1,6 @@
 # MoodTunes - Emotion-Based Playlist Generator
 
-# Week 1, commit = b86b00b21392c3e3e14393a4fd4ca7efea0b0c8e
+# Week 1, commit = 7646cbc1a3e559a79cc52877fc0b21d6cfa93a8d
 
 ## Project Overview
 MoodTunes is a web application that generates personalized Spotify playlists based on user emotions and memories. The application uses AI to analyze emotional context and creates playlists that match the user's mood.
