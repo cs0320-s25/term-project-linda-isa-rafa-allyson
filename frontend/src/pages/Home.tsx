@@ -1,14 +1,48 @@
-import React from 'react';
+import { Box, Button, Container, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
 
-const Home: React.FC = () => {
+export default function Home() {
+  const navigate = useNavigate();
+  const { isSignedIn } = useUser();
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-bold text-gray-900">Welcome to MoodTunes</h1>
-        <p className="mt-4 text-xl text-gray-600">Create personalized playlists based on your emotions</p>
-      </div>
-    </div>
+    <Container maxWidth="md">
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          gap: 4,
+        }}
+      >
+        <Typography variant="h2" component="h1" gutterBottom>
+          Welcome to MoodTunes
+        </Typography>
+        <Typography variant="h5" color="text.secondary" paragraph>
+          Generate personalized playlists based on your emotions and memories
+        </Typography>
+        {isSignedIn ? (
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => navigate("/generate")}
+          >
+            Generate Playlist
+          </Button>
+        ) : (
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => navigate("/signin")}
+          >
+            Sign In to Get Started
+          </Button>
+        )}
+      </Box>
+    </Container>
   );
-};
-
-export default Home; 
+}

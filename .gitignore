@@ -14,6 +14,8 @@ target/
 build/
 dist/
 .env
+.env.*
+!.env.example
 test-results/
 playwright-report/
 playwright/.cache/

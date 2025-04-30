@@ -1,42 +1,95 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import { createTheme } from '@mui/material/styles';
-import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
-import Header from './components/layout/Header';
-import Home from './pages/Home';
-import PlaylistGenerator from './pages/PlaylistGenerator';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  ClerkProvider,
+  SignedIn,
+  SignedOut,
+  SignIn,
+  SignUp,
+} from "@clerk/clerk-react";
+import { ThemeProvider, createTheme } from "@mui/material";
+import CssBaseline from "@mui/material/CssBaseline";
+import Home from "./pages/Home";
+import PlaylistGenerator from "./pages/PlaylistGenerator";
 
 const theme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: "dark",
     primary: {
-      main: '#1DB954', // Spotify green
+      main: "#1DB954", // Spotify green
     },
     secondary: {
-      main: '#FFFFFF',
+      main: "#FFFFFF",
     },
-    background: {
-      default: '#121212',
-      paper: '#181818',
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
   },
 });
 
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_cXVpZXQtZ3VsbC0yMy5jbGVyay5hY2NvdW50cy5kZXYk';
-
 function App() {
+  const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+  console.log("Clerk key:", import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+
+  if (!clerkPubKey) {
+    console.error("Missing Clerk publishable key");
+    return <div>Error: Missing Clerk publishable key</div>;
+  }
+
   return (
-    <ClerkProvider publishableKey={clerkPubKey}>
+    <ClerkProvider
+      publishableKey={clerkPubKey}
+      appearance={{
+        elements: {
+          formButtonPrimary: {
+            backgroundColor: "#1DB954",
+            "&:hover": {
+              backgroundColor: "#1ed760",
+            },
+          },
+        },
+      }}
+    >
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Router>
-          <Header />
+        <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route
+              path="/signin/*"
+              element={
+                <SignIn
+                  routing="path"
+                  path="/signin"
+                  appearance={{
+                    elements: {
+                      formButtonPrimary: {
+                        backgroundColor: "#1DB954",
+                        "&:hover": {
+                          backgroundColor: "#1ed760",
+                        },
+                      },
+                    },
+                  }}
+                />
+              }
+            />
+            <Route
+              path="/signup/*"
+              element={
+                <SignUp
+                  routing="path"
+                  path="/signup"
+                  appearance={{
+                    elements: {
+                      formButtonPrimary: {
+                        backgroundColor: "#1DB954",
+                        "&:hover": {
+                          backgroundColor: "#1ed760",
+                        },
+                      },
+                    },
+                  }}
+                />
+              }
+            />
             <Route
               path="/generate"
               element={
@@ -45,13 +98,13 @@ function App() {
                     <PlaylistGenerator />
                   </SignedIn>
                   <SignedOut>
-                    <RedirectToSignIn />
+                    <Navigate to="/signin" />
                   </SignedOut>
                 </>
               }
             />
           </Routes>
-        </Router>
+        </BrowserRouter>
       </ThemeProvider>
     </ClerkProvider>
   );
