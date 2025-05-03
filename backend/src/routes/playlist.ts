@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import SpotifyWebApi from "spotify-web-api-node";
 import { OpenAI } from "openai";
 import spotifyPreviewFinder from "spotify-preview-finder";
+import dotenv from 'dotenv';
+dotenv.config();
 
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
