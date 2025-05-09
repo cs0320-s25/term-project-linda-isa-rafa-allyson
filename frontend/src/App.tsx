@@ -10,6 +10,7 @@ import { ThemeProvider, createTheme } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import Home from "./pages/Home";
 import PlaylistGenerator from "./pages/PlaylistGenerator";
+import Favorites from "./pages/Favorites";
 
 const theme = createTheme({
   palette: {
@@ -96,6 +97,19 @@ function App() {
                 <>
                   <SignedIn>
                     <PlaylistGenerator />
+                  </SignedIn>
+                  <SignedOut>
+                    <Navigate to="/signin" />
+                  </SignedOut>
+                </>
+              }
+            />
+            <Route
+              path="/favorites"
+              element={
+                <>
+                  <SignedIn>
+                    <Favorites />
                   </SignedIn>
                   <SignedOut>
                     <Navigate to="/signin" />

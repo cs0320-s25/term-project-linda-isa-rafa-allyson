@@ -1,30 +1,27 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Box,
-  Button,
   Container,
-  TextField,
   Typography,
   Grid,
   Card,
   CardContent,
   CardMedia,
-  CircularProgress,
   IconButton,
   Slider,
   AppBar,
   Toolbar,
+  Button,
+  Paper,
 } from "@mui/material";
-import { useAuth, useUser } from "@clerk/clerk-react";
-import axios from "axios";
+import { useUser } from "@clerk/clerk-react";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
-import RefreshIcon from "@mui/icons-material/Refresh";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import BookmarkIcon from "@mui/icons-material/Bookmark";
 import HomeIcon from "@mui/icons-material/Home";
+import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
+import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { Link } from "react-router-dom";
 
 interface Track {
@@ -33,145 +30,73 @@ interface Track {
   artist: string;
   preview_url: string;
   image_url: string;
-  isFavorite?: boolean;
+  isFavorite: boolean;
 }
 
-export default function PlaylistGenerator() {
-  const [emotion, setEmotion] = useState("");
-  const [memory, setMemory] = useState("");
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+export default function Favorites() {
+  const { user } = useUser();
+  const [favorites, setFavorites] = useState<Track[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.7);
-  const [favorites, setFavorites] = useState<Track[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const { getToken } = useAuth();
-  const { user } = useUser();
 
   // Load favorites from localStorage on component mount
   useEffect(() => {
     const loadFavorites = () => {
+      setIsLoading(true);
       try {
         const userId = user?.id;
         if (!userId) return;
 
         const storedFavorites = localStorage.getItem(`favorites_${userId}`);
         if (storedFavorites) {
-          const favoritesData = JSON.parse(storedFavorites);
-          setFavorites(favoritesData);
-          
-          // Mark tracks that are favorites
-          if (tracks.length > 0) {
-            const updatedTracks = tracks.map(track => ({
-              ...track,
-              isFavorite: favoritesData.some((fav: Track) => fav.id === track.id)
-            }));
-            setTracks(updatedTracks);
-          }
+          setFavorites(JSON.parse(storedFavorites));
         }
       } catch (error) {
         console.error('Error loading favorites:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     loadFavorites();
-  }, [user, tracks.length]);
+  }, [user]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setTracks([]);
-    setCurrentTrack(null);
-    setIsPlaying(false);
+  // Function to remove a track from favorites
+  const removeFavorite = (trackId: string) => {
+    const updatedFavorites = favorites.filter(track => track.id !== trackId);
+    setFavorites(updatedFavorites);
+    
+    // Update localStorage
+    const userId = user?.id;
+    if (userId) {
+      localStorage.setItem(`favorites_${userId}`, JSON.stringify(updatedFavorites));
+    }
 
-    try {
-      const token = await getToken();
-      const response = await axios.post(
-        "/api/playlists/generate",
-        { emotion, memory },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      // Check if any of the returned tracks are in favorites
-      const tracksWithFavoriteStatus = response.data.tracks.map((track: Track) => ({
-        ...track,
-        isFavorite: favorites.some(fav => fav.id === track.id)
-      }));
-      
-      setTracks(tracksWithFavoriteStatus);
-    } catch (err) {
-      setError("Failed to generate playlist. Please try again.");
-      console.error(err);
-    } finally {
-      setLoading(false);
+    // If the current playing track is removed, stop playback
+    if (currentTrack?.id === trackId) {
+      setCurrentTrack(null);
+      setIsPlaying(false);
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
     }
   };
 
-  const handleRegenerate = async () => {
-    setLoading(true);
-    setError("");
-    setCurrentTrack(null);
-    setIsPlaying(false);
-
-    try {
-      const token = await getToken();
-      const response = await axios.post(
-        "/api/playlists/generate",
-        {
-          emotion,
-          memory,
-          excludeSongs: tracks.map((track) => ({
-            title: track.name,
-            artist: track.artist,
-          })),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      
-      // Check if any of the returned tracks are in favorites
-      const tracksWithFavoriteStatus = response.data.tracks.map((track: Track) => ({
-        ...track,
-        isFavorite: favorites.some(fav => fav.id === track.id)
-      }));
-      
-      setTracks(tracksWithFavoriteStatus);
-    } catch (err) {
-      setError("Failed to regenerate playlist. Please try again.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Play/Pause functionality (same as in PlaylistGenerator)
   const handlePlayPause = (track: Track) => {
-    console.log("Play/Pause clicked for track:", track.name);
-    console.log("Current track:", currentTrack?.id);
-    console.log("Is playing:", isPlaying);
-
     if (currentTrack?.id === track.id) {
       setIsPlaying(!isPlaying);
       if (audioRef.current) {
         if (isPlaying) {
-          console.log("Pausing track");
           audioRef.current.pause();
         } else {
-          console.log("Playing track");
           audioRef.current.play();
         }
       }
     } else {
-      console.log("Switching to new track");
       setCurrentTrack(track);
       setIsPlaying(true);
       if (audioRef.current) {
@@ -182,39 +107,12 @@ export default function PlaylistGenerator() {
     }
   };
 
+  // Volume control (same as in PlaylistGenerator)
   const handleVolumeChange = (event: Event, newValue: number | number[]) => {
     const newVolume = newValue as number;
     setVolume(newVolume);
     if (audioRef.current) {
       audioRef.current.volume = newVolume;
-    }
-  };
-
-  // Toggle favorite status
-  const toggleFavorite = (track: Track) => {
-    // Update the track in the current list
-    const updatedTracks = tracks.map(t => 
-      t.id === track.id ? { ...t, isFavorite: !t.isFavorite } : t
-    );
-    setTracks(updatedTracks);
-    
-    // Update favorites list
-    let updatedFavorites;
-    
-    if (track.isFavorite) {
-      // Remove from favorites
-      updatedFavorites = favorites.filter(t => t.id !== track.id);
-    } else {
-      // Add to favorites
-      updatedFavorites = [...favorites, { ...track, isFavorite: true }];
-    }
-    
-    setFavorites(updatedFavorites);
-    
-    // Save to localStorage
-    const userId = user?.id;
-    if (userId) {
-      localStorage.setItem(`favorites_${userId}`, JSON.stringify(updatedFavorites));
     }
   };
 
@@ -232,16 +130,16 @@ export default function PlaylistGenerator() {
           </Button>
           
           <Typography variant="h6" component="div" sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-            Generate Your Playlist
+            My Favorites
           </Typography>
           
           <Button 
             color="inherit" 
             component={Link} 
-            to="/favorites" 
-            startIcon={<BookmarkIcon />}
+            to="/generate" 
+            startIcon={<PlaylistAddIcon />}
           >
-            Favorites
+            Generate
           </Button>
         </Toolbar>
       </AppBar>
@@ -249,78 +147,40 @@ export default function PlaylistGenerator() {
       <Container maxWidth="md">
         <Box sx={{ py: 4 }}>
           <Typography variant="h4" component="h1" gutterBottom>
-            Generate Your Playlist
+            Your Favorite Tracks
           </Typography>
-          <form onSubmit={handleSubmit}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="How are you feeling?"
-                  value={emotion}
-                  onChange={(e) => setEmotion(e.target.value)}
-                  required
-                  placeholder="e.g., nostalgic, joyful, bittersweet"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Share a memory related to your emotion."
-                  value={memory}
-                  onChange={(e) => setMemory(e.target.value)}
-                  multiline
-                  rows={4}
-                  placeholder="e.g., Walking through the park on a sunny autumn day"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
-                  disabled={loading}
-                  fullWidth
-                >
-                  {loading ? <CircularProgress size={24} /> : "Generate Playlist"}
-                </Button>
-              </Grid>
-            </Grid>
-          </form>
 
-          {error && (
-            <Typography color="error" sx={{ mt: 2 }}>
-              {error}
-            </Typography>
-          )}
-
-          {tracks.length > 0 && (
-            <Box sx={{ mt: 4 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 2,
-                }}
+          {isLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+              <Typography>Loading your favorites...</Typography>
+            </Box>
+          ) : favorites.length === 0 ? (
+            <Paper sx={{ p: 4, mt: 4, textAlign: 'center' }}>
+              <MusicNoteIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+              <Typography variant="h5" gutterBottom>
+                No favorites yet
+              </Typography>
+              <Typography variant="body1" color="text.secondary" paragraph>
+                Head over to the playlist generator to discover and favorite some songs!
+              </Typography>
+              <Button 
+                variant="contained" 
+                component={Link} 
+                to="/generate" 
+                startIcon={<PlaylistAddIcon />}
+                sx={{ mt: 2 }}
               >
-                <Typography variant="h5">Your Generated Playlist</Typography>
-                <Button
-                  variant="outlined"
-                  startIcon={<RefreshIcon />}
-                  onClick={handleRegenerate}
-                  disabled={loading}
-                  sx={{
-                    color: "#1DB954",
-                    borderColor: "#1DB954",
-                    "&:hover": { borderColor: "#1DB954" },
-                  }}
-                >
-                  Regenerate
-                </Button>
-              </Box>
+                Generate Playlist
+              </Button>
+            </Paper>
+          ) : (
+            <Box sx={{ mt: 4 }}>
+              <Typography variant="body1" color="text.secondary" paragraph>
+                {favorites.length} {favorites.length === 1 ? 'track' : 'tracks'} in your collection
+              </Typography>
+              
               <Grid container spacing={3}>
-                {tracks.map((track) => (
+                {favorites.map((track) => (
                   <Grid item xs={12} sm={6} md={4} key={track.id}>
                     <Card
                       sx={{
@@ -338,9 +198,9 @@ export default function PlaylistGenerator() {
                           alt={track.name}
                           sx={{ objectFit: "cover" }}
                         />
-                        {/* Favorite Icon Button */}
+                        {/* Favorite Remove Button */}
                         <IconButton
-                          onClick={() => toggleFavorite(track)}
+                          onClick={() => removeFavorite(track.id)}
                           sx={{
                             position: "absolute",
                             top: 8,
@@ -349,14 +209,10 @@ export default function PlaylistGenerator() {
                             "&:hover": {
                               backgroundColor: "rgba(0, 0, 0, 0.7)",
                             },
-                            color: track.isFavorite ? "#ff1744" : "white",
+                            color: "#ff1744",
                           }}
                         >
-                          {track.isFavorite ? (
-                            <FavoriteIcon />
-                          ) : (
-                            <FavoriteBorderIcon />
-                          )}
+                          <FavoriteIcon />
                         </IconButton>
                       </Box>
                       <CardContent sx={{ flexGrow: 1 }}>

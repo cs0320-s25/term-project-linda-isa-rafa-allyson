@@ -138,4 +138,3 @@ npx playwright test --ui
 - AI-powered song selection using OpenAI
 - Preview functionality for recommended songs
 - Responsive design for all devices
-
