@@ -231,8 +231,16 @@ export default function PlaylistGenerator() {
             Home
           </Button>
           
-          <Typography variant="h6" component="div" sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-            Generate Your Playlist
+          <Typography 
+          // variant="h6" component="div" sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+          //   Generate Your Playlist
+          variant="h6"
+          component="div"
+          sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}
+          aria-label="Generate Your Playlist"
+          aria-hidden="true"
+        >
+          Generate Your Playlist
           </Typography>
           
           <Button 
@@ -248,7 +256,10 @@ export default function PlaylistGenerator() {
 
       <Container maxWidth="md">
         <Box sx={{ py: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom>
+          <Typography variant="h4" component="h1" gutterBottom
+          aria-label="Page title: Generate Your Playlist"
+          aria-hidden="true"
+          >
             Generate Your Playlist
           </Typography>
           <form onSubmit={handleSubmit}>
