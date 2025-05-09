@@ -158,7 +158,7 @@ export default function PlaylistGenerator() {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Share a memory (optional)"
+                label="Share a memory"
                 value={memory}
                 onChange={(e) => setMemory(e.target.value)}
                 multiline
