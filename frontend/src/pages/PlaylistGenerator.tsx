@@ -182,7 +182,7 @@ export default function PlaylistGenerator() {
     }
   };
 
-  const handleVolumeChange = (event: Event, newValue: number | number[]) => {
+  const handleVolumeChange = (_event: Event, newValue: number | number[]) => {
     const newVolume = newValue as number;
     setVolume(newVolume);
     if (audioRef.current) {
