@@ -26,6 +26,7 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import HomeIcon from "@mui/icons-material/Home";
 import { Link } from "react-router-dom";
+import { useVoiceOver } from "../services/voice-over";
 
 interface Track {
   id: string;
@@ -49,6 +50,7 @@ export default function PlaylistGenerator() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { getToken } = useAuth();
   const { user } = useUser();
+  const voiceOver = useVoiceOver();
 
   // Load favorites from localStorage on component mount
   useEffect(() => {
@@ -218,6 +220,15 @@ export default function PlaylistGenerator() {
     }
   };
 
+  // Add voice-over for buttons and text
+  const handleButtonHover = (text: string) => {
+    voiceOver.speak(text);
+  };
+
+  const handleTrackHover = (track: Track) => {
+    voiceOver.speak(`${track.name} by ${track.artist}`);
+  };
+
   return (
     <>
       <AppBar position="static" color="primary" sx={{ mb: 4 }}>
@@ -227,20 +238,19 @@ export default function PlaylistGenerator() {
             component={Link} 
             to="/" 
             startIcon={<HomeIcon />}
+            onMouseEnter={() => handleButtonHover("Home button")}
           >
             Home
           </Button>
           
           <Typography 
-          // variant="h6" component="div" sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-          //   Generate Your Playlist
-          variant="h6"
-          component="div"
-          sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}
-          aria-label="Generate Your Playlist"
-          aria-hidden="true"
-        >
-          Generate Your Playlist
+            variant="h6"
+            component="div"
+            sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}
+            aria-label="Generate Your Playlist"
+            onMouseEnter={() => handleButtonHover("Generate Your Playlist")}
+          >
+            Generate Your Playlist
           </Typography>
           
           <Button 
@@ -248,6 +258,7 @@ export default function PlaylistGenerator() {
             component={Link} 
             to="/favorites" 
             startIcon={<BookmarkIcon />}
+            onMouseEnter={() => handleButtonHover("Favorites button")}
           >
             Favorites
           </Button>
@@ -256,9 +267,11 @@ export default function PlaylistGenerator() {
 
       <Container maxWidth="md">
         <Box sx={{ py: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom
-          aria-label="Page title: Generate Your Playlist"
-          aria-hidden="true"
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            gutterBottom
+            onMouseEnter={() => handleButtonHover("Generate Your Playlist")}
           >
             Generate Your Playlist
           </Typography>
@@ -272,6 +285,7 @@ export default function PlaylistGenerator() {
                   onChange={(e) => setEmotion(e.target.value)}
                   required
                   placeholder="e.g., nostalgic, joyful, bittersweet"
+                  onMouseEnter={() => handleButtonHover("How are you feeling?")}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -283,6 +297,7 @@ export default function PlaylistGenerator() {
                   multiline
                   rows={4}
                   placeholder="e.g., Walking through the park on a sunny autumn day"
+                  onMouseEnter={() => handleButtonHover("Share a memory related to your emotion")}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -292,6 +307,7 @@ export default function PlaylistGenerator() {
                   size="large"
                   disabled={loading}
                   fullWidth
+                  onMouseEnter={() => handleButtonHover(loading ? "Loading" : "Generate Playlist")}
                 >
                   {loading ? <CircularProgress size={24} /> : "Generate Playlist"}
                 </Button>
@@ -300,7 +316,11 @@ export default function PlaylistGenerator() {
           </form>
 
           {error && (
-            <Typography color="error" sx={{ mt: 2 }}>
+            <Typography 
+              color="error" 
+              sx={{ mt: 2 }}
+              onMouseEnter={() => handleButtonHover(error)}
+            >
               {error}
             </Typography>
           )}
@@ -315,12 +335,18 @@ export default function PlaylistGenerator() {
                   mb: 2,
                 }}
               >
-                <Typography variant="h5">Your Generated Playlist</Typography>
+                <Typography 
+                  variant="h5"
+                  onMouseEnter={() => handleButtonHover("Your Generated Playlist")}
+                >
+                  Your Generated Playlist
+                </Typography>
                 <Button
                   variant="outlined"
                   startIcon={<RefreshIcon />}
                   onClick={handleRegenerate}
                   disabled={loading}
+                  onMouseEnter={() => handleButtonHover("Regenerate playlist")}
                   sx={{
                     color: "#1DB954",
                     borderColor: "#1DB954",
@@ -340,6 +366,7 @@ export default function PlaylistGenerator() {
                         flexDirection: "column",
                         position: "relative",
                       }}
+                      onMouseEnter={() => handleTrackHover(track)}
                     >
                       <Box sx={{ position: "relative" }}>
                         <CardMedia
