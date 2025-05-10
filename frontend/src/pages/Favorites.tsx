@@ -23,6 +23,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { Link } from "react-router-dom";
+import { useVoiceOver } from "../services/voice-over";
 
 interface Track {
   id: string;
@@ -41,6 +42,7 @@ export default function Favorites() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.7);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const voiceOver = useVoiceOver();
 
   // Set document title for accessibility
   useEffect(() => {
@@ -115,6 +117,15 @@ export default function Favorites() {
     }
   };
 
+  // Add voice-over for buttons and text
+  const handleButtonHover = (text: string) => {
+    voiceOver.speak(text);
+  };
+
+  const handleTrackHover = (track: Track) => {
+    voiceOver.speak(`${track.name} by ${track.artist}`);
+  };
+
   return (
     <>
       <AppBar position="static" color="primary" sx={{ mb: 4 }}>
@@ -124,11 +135,17 @@ export default function Favorites() {
             component={Link} 
             to="/" 
             startIcon={<HomeIcon />}
+            onMouseEnter={() => handleButtonHover("Home button")}
           >
             Home
           </Button>
 
-          <Typography variant="h6" component="div" sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+          <Typography 
+            variant="h6" 
+            component="div" 
+            sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}
+            onMouseEnter={() => handleButtonHover("My Favorites")}
+          >
             My Favorites
           </Typography>
 
@@ -137,6 +154,7 @@ export default function Favorites() {
             component={Link} 
             to="/generate" 
             startIcon={<PlaylistAddIcon />}
+            onMouseEnter={() => handleButtonHover("Generate playlist")}
           >
             Generate
           </Button>
@@ -145,21 +163,37 @@ export default function Favorites() {
 
       <Container maxWidth="md">
         <Box sx={{ py: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom>
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            gutterBottom
+            onMouseEnter={() => handleButtonHover("Your Favorite Tracks")}
+          >
             Your Favorite Tracks
           </Typography>
 
           {isLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-              <Typography>Loading your favorites...</Typography>
+              <Typography onMouseEnter={() => handleButtonHover("Loading your favorites")}>
+                Loading your favorites...
+              </Typography>
             </Box>
           ) : favorites.length === 0 ? (
             <Paper sx={{ p: 4, mt: 4, textAlign: 'center' }}>
               <MusicNoteIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-              <Typography variant="h5" gutterBottom>
+              <Typography 
+                variant="h5" 
+                gutterBottom
+                onMouseEnter={() => handleButtonHover("No favorites yet")}
+              >
                 No favorites yet
               </Typography>
-              <Typography variant="body1" color="text.secondary" paragraph>
+              <Typography 
+                variant="body1" 
+                color="text.secondary" 
+                paragraph
+                onMouseEnter={() => handleButtonHover("Head over to the playlist generator to discover and favorite some songs")}
+              >
                 Head over to the playlist generator to discover and favorite some songs!
               </Typography>
               <Button 
@@ -168,13 +202,19 @@ export default function Favorites() {
                 to="/generate" 
                 startIcon={<PlaylistAddIcon />}
                 sx={{ mt: 2 }}
+                onMouseEnter={() => handleButtonHover("Generate Playlist")}
               >
                 Generate Playlist
               </Button>
             </Paper>
           ) : (
             <Box sx={{ mt: 4 }}>
-              <Typography variant="body1" color="text.secondary" paragraph>
+              <Typography 
+                variant="body1" 
+                color="text.secondary" 
+                paragraph
+                onMouseEnter={() => handleButtonHover(`${favorites.length} ${favorites.length === 1 ? 'track' : 'tracks'} in your collection`)}
+              >
                 {favorites.length} {favorites.length === 1 ? 'track' : 'tracks'} in your collection
               </Typography>
 
@@ -188,6 +228,7 @@ export default function Favorites() {
                         flexDirection: "column",
                         position: "relative",
                       }}
+                      onMouseEnter={() => handleTrackHover(track)}
                     >
                       <Box sx={{ position: "relative" }}>
                         <CardMedia
