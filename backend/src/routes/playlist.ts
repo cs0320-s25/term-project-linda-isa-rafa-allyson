@@ -82,7 +82,11 @@ export const generatePlaylist = async (req: Request, res: Response) => {
       });
 
       console.log("OpenAI raw response:", completion);
-      const openaiResponse = completion.choices[0].message.content;
+      const openaiResponseData = completion.choices[0];
+      const openaiResponse = openaiResponseData.message?.content;
+      if (!openaiResponse) {
+        throw new Error("No response from OpenAI");
+      }
       console.log("OpenAI response content:", openaiResponse);
 
       let suggestedSongs;
@@ -126,6 +130,10 @@ export const generatePlaylist = async (req: Request, res: Response) => {
               return null;
             }
 
+            // Get audio features for the track
+            const audioFeatures = await spotifyApi.getAudioFeaturesForTrack(spotifyTrack.id);
+            console.log(`Got audio features for ${song.title}`);
+
             // Then get the preview URL using spotify-preview-finder
             const previewResult = await spotifyPreviewFinder(
               `${song.title} ${song.artist}`,
@@ -142,10 +150,18 @@ export const generatePlaylist = async (req: Request, res: Response) => {
                 artist: spotifyTrack.artists[0].name,
                 preview_url: previewTrack.previewUrls[0] || null,
                 image_url: spotifyTrack.album.images[0]?.url || null,
+                audio_features: {
+                  valence: audioFeatures.body.valence,
+                  energy: audioFeatures.body.energy,
+                  danceability: audioFeatures.body.danceability,
+                  acousticness: audioFeatures.body.acousticness,
+                  instrumentalness: audioFeatures.body.instrumentalness,
+                  tempo: audioFeatures.body.tempo
+                }
               };
             }
 
-            // If no preview URL found, still return the track with image
+            // If no preview URL found, still return the track with image and audio features
             console.log(
               `No preview URL found for ${song.title}, but keeping track with image`
             );
@@ -155,6 +171,14 @@ export const generatePlaylist = async (req: Request, res: Response) => {
               artist: spotifyTrack.artists[0].name,
               preview_url: null,
               image_url: spotifyTrack.album.images[0]?.url || null,
+              audio_features: {
+                valence: audioFeatures.body.valence,
+                energy: audioFeatures.body.energy,
+                danceability: audioFeatures.body.danceability,
+                acousticness: audioFeatures.body.acousticness,
+                instrumentalness: audioFeatures.body.instrumentalness,
+                tempo: audioFeatures.body.tempo
+              }
             };
           } catch (error) {
             console.error(`Error processing song ${song.title}:`, error);
