@@ -224,4 +224,101 @@ describe("Playlist Generation API", () => {
     expect(response.status).toBe(200);
     expect(response.body.tracks[0].preview_url).toBeNull();
   });
+
+  it("should handle empty emotion string", async () => {
+    const response = await request(app)
+      .post("/api/playlists/generate")
+      .set("Authorization", `Bearer ${mockSessionToken}`)
+      .send({ emotion: "", memory: "test memory" });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("Emotion is required");
+  });
+
+  it("should handle empty memory string", async () => {
+    const response = await request(app)
+      .post("/api/playlists/generate")
+      .set("Authorization", `Bearer ${mockSessionToken}`)
+      .send({ emotion: "happy", memory: "" });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("Memory is required");
+  });
+
+  it("should handle missing album images", async () => {
+    const spotifyInstance = new (SpotifyWebApi as unknown as jest.Mock)() as {
+      search: jest.Mock;
+    };
+    spotifyInstance.search.mockImplementationOnce(() => 
+      Promise.resolve({
+        body: {
+          tracks: {
+            items: [
+              {
+                id: "1",
+                name: "Test Song 1",
+                artists: [{ name: "Test Artist 1" }],
+                album: {
+                  images: []
+                }
+              }
+            ]
+          }
+        }
+      })
+    );
+
+    const response = await request(app)
+      .post("/api/playlists/generate")
+      .set("Authorization", `Bearer ${mockSessionToken}`)
+      .send({
+        emotion: "happy",
+        memory: "graduation day"
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.tracks[0].image_url).toBeNull();
+  });
+
+  it("should handle spotify-preview-finder returning no results", async () => {
+    const spotifyPreviewFinder = require("spotify-preview-finder");
+    spotifyPreviewFinder.mockImplementationOnce(() => 
+      Promise.resolve({
+        success: true,
+        results: []
+      })
+    );
+
+    const response = await request(app)
+      .post("/api/playlists/generate")
+      .set("Authorization", `Bearer ${mockSessionToken}`)
+      .send({
+        emotion: "happy",
+        memory: "graduation day"
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.tracks[0].preview_url).toBeNull();
+  });
+
+  it("should handle spotify-preview-finder returning error", async () => {
+    const spotifyPreviewFinder = require("spotify-preview-finder");
+    spotifyPreviewFinder.mockImplementationOnce(() => 
+      Promise.resolve({
+        success: false,
+        error: "Failed to find preview"
+      })
+    );
+
+    const response = await request(app)
+      .post("/api/playlists/generate")
+      .set("Authorization", `Bearer ${mockSessionToken}`)
+      .send({
+        emotion: "happy",
+        memory: "graduation day"
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.tracks[0].preview_url).toBeNull();
+  });
 });
