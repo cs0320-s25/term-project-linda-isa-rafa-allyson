@@ -13,6 +13,7 @@ class VoiceOverService {
   }
 
   public static getInstance(): VoiceOverService {
+    console.log(`getInstance method called ${VoiceOverService.getInstanceCount} times.`);
     if (!VoiceOverService.instance) {
       VoiceOverService.instance = new VoiceOverService();
       VoiceOverService.instanceCount++;
